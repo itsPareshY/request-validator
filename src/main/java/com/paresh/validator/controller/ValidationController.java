@@ -30,48 +30,41 @@ public class ValidationController {
 
     private List<Validator> validators;
 
-    private void loadValidators() {
-        validators = new ArrayList<>();
-        for (String validatorName : validatorsConfig) {
-            try {
-                Class<?> clazz = Class.forName(validatorName);
-                Validator validator = (Validator) clazz.getDeclaredConstructor().newInstance();
-                validators.add(validator);
-            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+    private ValidationChain setupValidatorChain() {
+        ValidationChain validationChain = new ValidationChain();
+
+        // Set up the chain of validators from configuration
+        if (validatorsConfig != null && validatorsConfig.length > 0) {
+            Validator previousValidator = null;
+            for (String validatorName : validatorsConfig) {
+                try {
+                    Class<?> clazz = Class.forName(validatorName);
+                    Validator validator = (Validator) clazz.getDeclaredConstructor().newInstance();
+                    validationChain.addValidator(validator);
+                    if (previousValidator != null) {
+                        previousValidator.setNext(validator);
+                    }
+                    previousValidator = validator;
+                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }
         }
-    }
-
-    private List<Validator> getValidators() {
-        if (validators == null) {
-            loadValidators();
-        }
-        return validators;
+        return validationChain;
     }
 
     @PostMapping("/validate")
-public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
-    ValidationChain validationChain = new ValidationChain();
+    public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
+        ValidationChain validationChain = setupValidatorChain();
 
-    // Set up the chain of validators
-    BaseValidator baseValidator = new BaseValidator();
-    EmailValidator emailValidator = new EmailValidator();
-    AgeValidator ageValidator = new AgeValidator();
+        // Validate the request using the chain
+        Map<String, String> errors = validationChain.validate(request);
 
-    baseValidator.setNext(emailValidator);
-    emailValidator.setNext(ageValidator);
-
-    validationChain.addValidator(baseValidator);
-
-    // Validate the request using the chain
-    Map<String, String> errors = validationChain.validate(request);
-
-    if (!errors.isEmpty()) {
-        return ResponseEntity.badRequest().body(errors);
+        if (!errors.isEmpty()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
+        return ResponseEntity.ok(Map.of("message", "Request validation successful for user: " + request.getName()));
     }
-    return ResponseEntity.ok(Map.of("message", "Request validation successful for user: " + request.getName()));
-}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
