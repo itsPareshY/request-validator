@@ -50,6 +50,7 @@ public class ValidationController {
         return validators;
     }
 
+    @PostMapping("/validate")
 public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
     ValidationChain validationChain = new ValidationChain();
 
