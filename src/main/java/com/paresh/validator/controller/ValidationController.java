@@ -1,64 +1,55 @@
 package com.paresh.validator.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paresh.validator.model.UserRequest;
-import com.paresh.validator.validation.BaseValidator;
-import com.paresh.validator.validation.EmailValidator;
-import com.paresh.validator.validation.AgeValidator;
 import com.paresh.validator.validation.Validator;
-import com.paresh.validator.validation.ValidationChain;
+import java.io.File;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-@PropertySource("classpath:application.properties")
 @RestController
 @RequestMapping("/api/v1")
 public class ValidationController {
 
-    @Value("${validators}")
-    private String[] validatorsConfig;
-
-    private List<Validator> validators;
-
-    private ValidationChain setupValidatorChain() {
-        ValidationChain validationChain = new ValidationChain();
-
-        // Set up the chain of validators from configuration
-        if (validatorsConfig != null && validatorsConfig.length > 0) {
-            Validator previousValidator = null;
-            for (String validatorName : validatorsConfig) {
-                try {
-                    Class<?> clazz = Class.forName(validatorName);
-                    Validator validator = (Validator) clazz.getDeclaredConstructor().newInstance();
-                    validationChain.addValidator(validator);
-                    if (previousValidator != null) {
-                        previousValidator.setNext(validator);
-                    }
-                    previousValidator = validator;
-                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
+    private Validator setupValidatorChain() {
+        Validator firstValidator = null;
+        Validator previousValidator = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(new File("src/main/resources/validators.json"));
+            JsonNode validatorsNode = rootNode.path("validators");
+    
+            for (JsonNode validatorNode : validatorsNode) {
+                String validatorName = validatorNode.asText();
+                Class<?> clazz = Class.forName(validatorName);
+                Validator validator = (Validator) clazz.getDeclaredConstructor().newInstance();
+                if (firstValidator == null) {
+                    firstValidator = validator;
                 }
+                if (previousValidator != null) {
+                    previousValidator.setNext(validator);
+                }
+                previousValidator = validator;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return validationChain;
+        return firstValidator;
     }
 
     @PostMapping("/validate")
     public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
-        ValidationChain validationChain = setupValidatorChain();
+        Validator validator = setupValidatorChain();
 
         // Validate the request using the chain
-        Map<String, String> errors = validationChain.validate(request);
+        Map<String, String> errors = validator.validate(request);
 
         if (!errors.isEmpty()) {
             return ResponseEntity.badRequest().body(errors);
