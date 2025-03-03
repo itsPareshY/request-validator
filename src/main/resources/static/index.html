@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Validator - System Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .status-card {
+            background-color: #f0f8ff;
+            border: 1px solid #b8daff;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status-indicator {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .api-endpoint {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Request Validator Service</h1>
+    
+    <div class="status-card">
+        <h2>System Status</h2>
+        <p><span class="status-indicator">✓ ONLINE</span> - The service is up and running</p>
+    </div>
+
+    <h2>API Information</h2>
+    <p>The validation service is available at:</p>
+    <div class="api-endpoint">
+        POST /api/v1/validate
+    </div>
+
+    <h3>Documentation Links</h3>
+    <ul>
+        <li><a href="https://github.com/yourusername/request-validator">GitHub Repository</a></li>
+        <li><a href="/examples/curl-commands.md">API Examples</a></li>
+    </ul>
+
+    <p>For more information about using the API, please refer to the documentation in the repository.</p>
+</body>
+</html>
