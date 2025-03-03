@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BaseValidator implements Validator {
+    private Validator next;
+
     @Override
     public Map<String, String> validate(Object obj) {
         Map<String, String> errors = new HashMap<>();
@@ -26,6 +28,16 @@ public class BaseValidator implements Validator {
                 e.printStackTrace();
             }
         }
+
+        // Pass to next validator if exists
+        if (next != null) {
+            errors.putAll(next.validate(obj));
+        }
         return errors;
+    }
+
+    @Override
+    public void setNext(Validator next) {
+        this.next = next;
     }
 }

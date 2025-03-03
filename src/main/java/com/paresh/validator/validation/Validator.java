@@ -4,4 +4,5 @@ import java.util.Map;
 
 public interface Validator {
     Map<String, String> validate(Object obj);
+    void setNext(Validator next);
 }

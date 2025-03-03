@@ -1,7 +1,11 @@
 package com.paresh.validator.controller;
 
 import com.paresh.validator.model.UserRequest;
+import com.paresh.validator.validation.BaseValidator;
+import com.paresh.validator.validation.EmailValidator;
+import com.paresh.validator.validation.AgeValidator;
 import com.paresh.validator.validation.Validator;
+import com.paresh.validator.validation.ValidationChain;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -10,7 +14,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,20 +50,27 @@ public class ValidationController {
         return validators;
     }
 
-    @PostMapping("/validate")
-    public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        List<Validator> validators = getValidators();
+public ResponseEntity<Map<String, String>> validateRequest(@Valid @RequestBody UserRequest request) {
+    ValidationChain validationChain = new ValidationChain();
 
-        for (Validator validator : validators) {
-            errors.putAll(validator.validate(request));
-        }
+    // Set up the chain of validators
+    BaseValidator baseValidator = new BaseValidator();
+    EmailValidator emailValidator = new EmailValidator();
+    AgeValidator ageValidator = new AgeValidator();
 
-        if (!errors.isEmpty()) {
-            return ResponseEntity.badRequest().body(errors);
-        }
-        return ResponseEntity.ok(Map.of("message", "Request validation successful for user: " + request.getName()));
+    baseValidator.setNext(emailValidator);
+    emailValidator.setNext(ageValidator);
+
+    validationChain.addValidator(baseValidator);
+
+    // Validate the request using the chain
+    Map<String, String> errors = validationChain.validate(request);
+
+    if (!errors.isEmpty()) {
+        return ResponseEntity.badRequest().body(errors);
     }
+    return ResponseEntity.ok(Map.of("message", "Request validation successful for user: " + request.getName()));
+}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
