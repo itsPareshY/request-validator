@@ -20,6 +20,21 @@ public class ValidationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+//    @Test
+//    public void whenValidInput_thenReturns200() throws Exception {
+//        UserRequest request = new UserRequest();
+//        request.setName("John Doe");
+//        request.setEmail("john@example.com");
+//        request.setAge(25);
+//        request.setPhoneNumber("+1234567890");
+//
+//        mockMvc.perform(post("/api/v1/validate")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(request)))
+//                .andExpect(status().isOk())
+//                .andExpect(content().string("Request validation successful for user: John Doe"));
+//    }
+
     @Test
     public void whenValidInput_thenReturns200() throws Exception {
         UserRequest request = new UserRequest();
@@ -29,10 +44,10 @@ public class ValidationControllerTest {
         request.setPhoneNumber("+1234567890");
 
         mockMvc.perform(post("/api/v1/validate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Request validation successful for user: John Doe"));
+                .andExpect(jsonPath("$.message").value("Request validation successful for user: John Doe"));
     }
 
     @Test

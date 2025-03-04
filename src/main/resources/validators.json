@@ -1,0 +1,8 @@
+{
+  "description": "Validators will be applied in the sequence defined in this file.",
+  "validators": [
+    "com.paresh.validator.validation.BaseValidator",
+    "com.paresh.validator.validation.EmailValidator",
+    "com.paresh.validator.validation.AgeValidator"
+  ]
+}
