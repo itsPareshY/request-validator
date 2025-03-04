@@ -2,7 +2,11 @@ package com.paresh.validator.model;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Data
 public class UserRequest {
     @NotBlank(message = "Name is required")
