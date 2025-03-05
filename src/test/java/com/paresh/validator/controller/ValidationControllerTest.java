@@ -59,10 +59,10 @@ public class ValidationControllerTest {
         request.setPhoneNumber("+1234567890");
 
         mockMvc.perform(post("/api/v1/validate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").value("Invalid email format"));
+                .andExpect(jsonPath("$.errors.email").value("Invalid email format"));
     }
 
     @Test
@@ -74,10 +74,10 @@ public class ValidationControllerTest {
         request.setPhoneNumber("+1234567890");
 
         mockMvc.perform(post("/api/v1/validate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.age").value("Age must be at least 18"));
+                .andExpect(jsonPath("$.errors.age").value("Age must be at least 18"));
     }
 
     @Test
@@ -89,9 +89,9 @@ public class ValidationControllerTest {
         request.setPhoneNumber("invalid-phone");  // Invalid phone
 
         mockMvc.perform(post("/api/v1/validate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.phoneNumber").value("Invalid phone number format"));
+                .andExpect(jsonPath("$.errors.phoneNumber").value("Invalid phone number format"));
     }
 }
